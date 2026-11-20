@@ -48,6 +48,16 @@ class PaperTests(unittest.TestCase):
         p['time']-=120000
         with self.assertRaises(ValueError):parse_quote('bybit','BTC/USDT',p,now)
         with self.assertRaises(ValueError):parse_quote('binance','BTC/USDT',{'symbol':'ETHUSDT','lastPrice':'1','closeTime':now*1000},now)
+    def test_http_failure_exposes_status_without_response_body(self):
+        import requests
+        with self.s.connect() as c:c.execute("UPDATE paper_settings SET value='public'")
+        for status in (403,429,451,500):
+            response=requests.Response();response.status_code=status;response._content=b'sensitive upstream response'
+            with patch('paper.requests.get',return_value=response):asyncio.run(self.p.refresh())
+            for error in self.p.errors.values():
+                self.assertEqual(error['http_status'],status)
+                self.assertIn(f'HTTP {status}',error['message'])
+                self.assertNotIn('sensitive',error['message'])
     def test_restart_persists_venue_ledger_and_projection(self):
         self.p.trade(self.id,'buy','.01','buy');other=PaperEngine(Store(self.s.path));self.assertEqual(other.book(self.id),self.p.book(self.id));self.assertTrue(other.store.replay(self.id)['matched'])
     def test_valuation_uses_quote_age_not_just_snapshot_age(self):

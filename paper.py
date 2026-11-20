@@ -84,7 +84,16 @@ class PaperEngine:
                         r.raise_for_status();q=parse_quote(venue,'BTC/USDT',r.json())
                     with self.store.connect() as c:c.execute('INSERT INTO public_quotes(mode,venue,body) VALUES(?,?,?)',(mode,venue,packed(q)))
                     self.errors.pop(venue,None)
-                except Exception as exc:self.errors[venue]={'type':type(exc).__name__,'at':time.time(),'message':'公开行情不可用；未切换合成数据。可手动选择离线模拟。'}
+                except Exception as exc:
+                    status=exc.response.status_code if isinstance(exc,requests.HTTPError) and exc.response is not None else None
+                    if status is not None:
+                        reason={403:'服务拒绝访问（可能存在地区或访问策略限制）',429:'请求被限流',451:'因地区或法律策略限制访问'}.get(status,'公开接口返回非成功状态')
+                        detail=f'HTTP {status}：{reason}'
+                    elif isinstance(exc,requests.Timeout):detail='请求超时'
+                    elif isinstance(exc,requests.ConnectionError):detail='网络连接失败'
+                    elif isinstance(exc,ValueError):detail='报价内容、标的或时效校验失败'
+                    else:detail='行情采集失败'
+                    self.errors[venue]={'type':type(exc).__name__,'at':time.time(),'http_status':status,'message':f'公开行情不可用（{detail}）；未切换合成数据。可选择可用账户或手动切换离线模拟。'}
             await asyncio.gather(*(fetch(v) for v in VENUES))
             for identifier in self.accounts():
                 try:self.sync(identifier)
