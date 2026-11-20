@@ -1,0 +1,4 @@
+[
+  {"id":"binance-spot","exchange":"binance","product":"spot","strategy":"manual","env_prefix":"ACCOUNTSCOPE_BINANCE"},
+  {"id":"bybit-spot","exchange":"bybit","product":"spot","strategy":"manual","env_prefix":"ACCOUNTSCOPE_BYBIT"}
+]

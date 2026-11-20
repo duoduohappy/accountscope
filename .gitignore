@@ -1,0 +1,11 @@
+runtime/
+profiles.json
+.env
+.env.*
+!.env.example
+.pytest_cache/
+*.sqlite*
+*.db*
+__pycache__/
+.venv/
+*.log

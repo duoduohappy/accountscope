@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: accountscope
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements-render.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /healthz
+    envVars:
+      - key: ACCOUNTSCOPE_HOSTED_DEMO
+        value: "1"
+      - key: ACCOUNTSCOPE_EPHEMERAL
+        value: "1"
+      - key: ACCOUNTSCOPE_PUBLIC_AUTO
+        value: "1"
+      - key: ACCOUNTSCOPE_DB
+        value: /tmp/accountscope/accounts.sqlite3

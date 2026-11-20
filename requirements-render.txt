@@ -1,0 +1,5 @@
+# Free public/paper demo: private CCXT adapters are disabled, so avoid its
+# extra cryptographic dependencies on the free build/runtime instance.
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+requests>=2.32,<3
